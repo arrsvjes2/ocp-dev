@@ -1,0 +1,96 @@
+---
+apiVersion: apps.openshift.io/v1
+kind: DeploymentConfig
+metadata:
+  labels:
+    app: employee-backend
+    provider: jkube
+    version: 1.0.0-SNAPSHOT
+    group: com.example.finesmart
+  name: employee-backend
+spec:
+  replicas: 1
+  revisionHistoryLimit: 2
+  selector:
+    app: employee-backend
+    provider: jkube
+    group: com.example.finesmart
+  strategy:
+    rollingParams:
+      timeoutSeconds: 3600
+    type: Rolling
+  template:
+    metadata:
+      labels:
+        app: employee-backend
+        provider: jkube
+        version: 1.0.0-SNAPSHOT
+        group: com.example.finesmart
+      name: employee-backend
+    spec:
+      containers:
+      - env:
+        - name: QUARKUS_DATASOURCE_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: employeedb
+              key: DATABASE_USER
+        - name: QUARKUS_DATASOURCE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: employeedb
+              key: DATABASE_PASSWORD
+        - name: QUARKUS_DATASOURCE_JDBC_URL
+          valueFrom:
+            configMapKeyRef:
+              name: employee-backend
+              key: DATABASE_URL
+        image: employee-backend:latest
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /q/health/live
+            port: 8080
+            scheme: HTTP
+          initialDelaySeconds: 10
+          successThreshold: 1
+        name: quarkus
+        ports:
+        - containerPort: 8080
+          name: http
+          protocol: TCP
+        - containerPort: 9779
+          name: prometheus
+          protocol: TCP
+        - containerPort: 8778
+          name: jolokia
+          protocol: TCP
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /q/health/ready
+            port: 8080
+            scheme: HTTP
+          initialDelaySeconds: 5
+          successThreshold: 1
+        securityContext:
+          privileged: false
+        startupProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /q/health/started
+            port: 8080
+            scheme: HTTP
+          initialDelaySeconds: 5
+          successThreshold: 1
+  triggers:
+  - type: ConfigChange
+  - imageChangeParams:
+      automatic: true
+      containerNames:
+      - quarkus
+      from:
+        kind: ImageStreamTag
+        name: employee-backend:latest
+    type: ImageChange

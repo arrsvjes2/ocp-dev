@@ -1,0 +1,6 @@
+.cache
+.go
+.git
+.odo
+devfile.yaml
+README*

@@ -1,0 +1,7 @@
+#!/bin/bash -e
+#
+
+echo "Before running"
+env
+
+exec /opt/app-root/gobinary

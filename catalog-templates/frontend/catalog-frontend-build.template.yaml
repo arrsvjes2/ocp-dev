@@ -1,0 +1,117 @@
+apiVersion: template.openshift.io/v1
+kind: Template
+labels:
+  app: catalog-frontend
+  template: nodejs-catalog-frontend-build
+message: |-
+  The following service(s) have been created in your project: ${NAME}.
+
+  For more information about using this template, including OpenShift considerations, see https://github.com/sclorg/nodejs-ex/blob/master/README.md.
+metadata:
+  annotations:
+    description: An Node.js frontend application for visualizing the Catalog of Products.
+      For more information about using this template, including OpenShift considerations,
+      see https://github.com/sclorg/nodejs-ex/blob/master/README.md.
+    iconClass: icon-nodejs
+    openshift.io/display-name: Catalog Frontend Node.js
+    openshift.io/documentation-url: https://github.com/sclorg/nodejs-ex
+    openshift.io/long-description: This template defines resources needed to develop
+      the React with NodeJS application, including a build configuration and application
+      deployment configuration.
+    openshift.io/provider-display-name: Red Hat, Inc.
+    tags: catalog,React,javascript,nodejs
+    template.openshift.io/bindable: "false"
+  name: catalog-frontend-build
+objects:
+- apiVersion: image.openshift.io/v1
+  kind: ImageStream
+  metadata:
+    annotations:
+      description: Keeps track of changes in the application image
+    name: ${NAME}
+- apiVersion: v1
+  kind: Secret
+  metadata:
+    annotations:
+      description: Credentials for accessing git repository
+    name: ${NAME}-git-creds
+  stringData:
+    password: ${SOURCE_PASSWORD}
+    username: ${SOURCE_USERNAME}
+  type: kubernetes.io/basic-auth
+- apiVersion: build.openshift.io/v1
+  kind: BuildConfig
+  metadata:
+    annotations:
+      description: Defines how to build the application
+      template.alpha.openshift.io/wait-for-ready: "true"
+    name: ${NAME}
+  spec:
+    failedBuildsHistoryLimit: 2
+    output:
+      to:
+        kind: ImageStreamTag
+        name: ${NAME}:latest
+    source:
+      contextDir: ${CONTEXT_DIR}
+      git:
+        ref: ${SOURCE_REPOSITORY_REF}
+        uri: ${SOURCE_REPOSITORY_URL}
+      sourceSecret:
+        name: ${NAME}-git-creds
+      type: Git
+    strategy:
+      dockerStrategy:
+        buildArgs:
+        - name: CATALOG_API_URL
+          value: ${APPLICATION_SERVICE}
+        - name: NPM_MIRROR
+          value: ${NPM_MIRROR}
+        - name: REGISTRY_URL
+          value: ${REGISTRY_URL}
+        dockerfilePath: Containerfile
+      type: Source
+    successfulBuildsHistoryLimit: 2
+    triggers:
+    - type: ImageChange
+    - type: ConfigChange
+parameters:
+- description: The name assigned to all of the frontend objects defined in this template.
+  displayName: Name
+  name: NAME
+  required: true
+  value: nodejs-example
+- description: The URL of the repository with your application source code.
+  displayName: Git Repository URL
+  name: SOURCE_REPOSITORY_URL
+  required: true
+  value: https://github.com/sclorg/nodejs-ex.git
+- description: Set this to a branch name, tag or other ref of your repository if you
+    are not using the default branch.
+  displayName: Git Reference
+  name: SOURCE_REPOSITORY_REF
+  required: true
+  value: main
+- description: Username that will be used for accessing the git repository.
+  displayName: Git username
+  from: user[A-Z0-9]{3}
+  generate: expression
+  name: SOURCE_USERNAME
+  required: true
+- description: Password for the git user.
+  displayName: git repository user password
+  from: '[a-zA-Z0-9]{16}'
+  generate: expression
+  name: SOURCE_PASSWORD
+  required: true
+- description: Set this to the relative path to your project if it is not in the root
+    of your repository.
+  displayName: Context Directory
+  name: CONTEXT_DIR
+- description: The exposed service that will be contacted by the frontend application
+  displayName: Application Service URL
+  name: APPLICATION_SERVICE
+  value: http://catalog-backend:8080/
+- description: The custom NPM mirror URL
+  displayName: Custom NPM Mirror URL
+  name: NPM_MIRROR

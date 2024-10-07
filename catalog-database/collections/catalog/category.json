@@ -1,0 +1,8 @@
+{"_id":{"$oid":"648b0fee27e1a05fe39325b2"},"name":"Beverages", "description":"Soft drinks, coffees, teas, beers, and ales", "picture":"coffees"}
+{"_id":{"$oid":"648c81ad4b8e992f7556aacb"},"name":"Condiments", "description":"Sweet and savory sauces, relishes, spreads, and seasonings", "picture":"relishes"}
+{"_id":{"$oid":"648c81ad4b8e992f7556aacc"},"name":"Confections", "description":"Desserts, candies, and sweet breads", "picture":"candies"}
+{"_id":{"$oid":"648c81ad4b8e992f7556aacd"},"name":"Dairy Products", "description":"Cheeses", "picture":"cheese"}
+{"_id":{"$oid":"648c81ad4b8e992f7556aace"},"name":"Grains/Cereals", "description":"Breads, crackers, pasta, and cereal", "picture":"crackers"}
+{"_id":{"$oid":"648c81ad4b8e992f7556aacf"},"name":"Meat/Poultry", "description":"Prepared meats", "picture":"chicken"}
+{"_id":{"$oid":"648c81ad4b8e992f7556aad0"},"name":"Produce","description":"Dried fruit and bean curd", "picture":"raisins"}
+{"_id":{"$oid":"648c81ad4b8e992f7556aad1"},"name":"Seafood","description":"Seaweed and fish", "picture":"crank"}

@@ -1,0 +1,29 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  name: EP288_TASK88_PP_APPLICATION-run
+spec:
+  serviceAccountName: EP288_TASK88_SERVICEACCOUNT
+  pipelineRef:
+    name: EP288_TASK88_PP_APPLICATION
+  params:
+  - name: deployment-name
+    value: EP288_TASK88_APPLICATION
+  - name: git-url
+    value: DYN_GIT_URLEP288_GIT_ORG/EP288_TASK88_APPLICATION.git
+  - name: backend-image
+    value: EP_OCP_INTERNAL_REGISTRY/$(context.pipelineRun.namespace)/EP288_TASK88_APPLICATION:latest
+  - name: maven-repo
+    value: DYN_NEXUS_MAVEN_URL
+  - name: registry-url
+    value: DYN_REGISTRY_FQDN
+  workspaces:
+  - name: shared-workspace
+    volumeClaimTemplate:
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 500Mi

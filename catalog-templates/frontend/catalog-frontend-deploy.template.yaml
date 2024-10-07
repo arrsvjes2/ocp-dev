@@ -1,0 +1,125 @@
+apiVersion: template.openshift.io/v1
+kind: Template
+labels:
+  app: catalog-frontend
+  template: nodejs-catalog-frontend-deploy
+message: |-
+  The following service(s) have been created in your project: ${NAME}.
+
+  For more information about using this template, including OpenShift considerations, see https://github.com/sclorg/nodejs-ex/blob/master/README.md.
+metadata:
+  annotations:
+    description: An Node.js frontend application for visualizing the Catalog of Products.
+      For more information about using this template, including OpenShift considerations,
+      see https://github.com/sclorg/nodejs-ex/blob/master/README.md.
+    iconClass: icon-nodejs
+    openshift.io/display-name: Catalog Frontend Node.js
+    openshift.io/documentation-url: https://github.com/sclorg/nodejs-ex
+    openshift.io/long-description: This template defines resources needed to develop
+      the React with NodeJS application, including a build configuration and application
+      deployment configuration.
+    openshift.io/provider-display-name: Red Hat, Inc.
+    tags: catalog,React,javascript,nodejs
+    template.openshift.io/bindable: "false"
+  name: catalog-frontend-deploy
+objects:
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      description: Exposes and load balances the application pods
+    name: ${NAME}
+  spec:
+    ports:
+    - name: web
+      port: 8080
+      targetPort: 8080
+    selector:
+      name: ${NAME}
+- apiVersion: route.openshift.io/v1
+  kind: Route
+  metadata:
+    name: ${NAME}
+  spec:
+    host: ${APPLICATION_DOMAIN}
+    to:
+      kind: Service
+      name: ${NAME}
+    tls:
+      termination: edge
+- apiVersion: apps.openshift.io/v1
+  kind: DeploymentConfig
+  metadata:
+    annotations:
+      description: Defines how to deploy the application server
+      template.alpha.openshift.io/wait-for-ready: "true"
+      app.openshift.io/connects-to: >-
+        [{"apiVersion":"apps.openshift.io/v1","kind":"DeploymentConfig","name":"catalog-backend"}]
+    labels:
+      app: catalog-frontend
+      app.kubernetes.io/component: frontend
+      app.kubernetes.io/name: ${NAME}
+      app.kubernetes.io/part-of: catalog
+      app.openshift.io/runtime: nginx
+      template: nodejs-${NAME}
+    name: ${NAME}
+  spec:
+    replicas: 1
+    revisionHistoryLimit: 2
+    selector:
+      name: ${NAME}
+    strategy:
+      type: Rolling
+    template:
+      metadata:
+        labels:
+          name: ${NAME}
+        name: ${NAME}
+      spec:
+        containers:
+        - env: []
+          image: catalog-frontend:latest
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 8080
+            initialDelaySeconds: 30
+            timeoutSeconds: 3
+          name: nginx
+          ports:
+          - containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8080
+            initialDelaySeconds: 3
+            timeoutSeconds: 3
+          resources:
+            limits:
+              memory: ${MEMORY_LIMIT}
+    triggers:
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+        - nginx
+        from:
+          kind: ImageStreamTag
+          name: ${NAME}:latest
+      type: ImageChange
+    - type: ConfigChange
+parameters:
+- description: The name assigned to all of the frontend objects defined in this template.
+  displayName: Name
+  name: NAME
+  required: true
+  value: nodejs-example
+- description: Maximum amount of memory the container can use.
+  displayName: Memory Limit
+  name: MEMORY_LIMIT
+  required: true
+  value: 64Mi
+- description: The exposed hostname that will route to the Node.js service, if left
+    blank a value will be defaulted.
+  displayName: Application Hostname
+  name: APPLICATION_DOMAIN

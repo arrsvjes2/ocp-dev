@@ -1,0 +1,29 @@
+ARG REGISTRY_URL=registry.access.redhat.com
+
+FROM ${REGISTRY_URL}/ubi9/nodejs-18:latest as build-stage
+
+ARG CATALOG_API_URL
+ARG NPM_MIRROR=https://registry.npmjs.org
+
+WORKDIR /opt/app-root/src
+
+COPY --chown=1001 package*json /opt/app-root/src
+
+RUN npm --registry "${NPM_MIRROR}" install
+
+COPY --chown=1001 . /opt/app-root/src
+
+RUN echo "REACT_APP_CATALOG_API_URL=${CATALOG_API_URL}" >.env.production
+
+RUN npm --registry "${NPM_MIRROR}" run build
+
+FROM ${REGISTRY_URL}/ubi9/nginx-120:latest
+
+USER 0
+COPY --from=build-stage --chown=1001:0 /opt/app-root/src/build /tmp/src
+COPY --from=build-stage /opt/app-root/src/nginx-cfg/ /opt/app-root/etc/nginx.default.d/
+USER 1001
+
+RUN /usr/libexec/s2i/assemble
+
+CMD /usr/libexec/s2i/run

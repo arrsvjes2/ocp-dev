@@ -1,0 +1,22 @@
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  annotations:
+    jkube.eclipse.org/git-commit: 8f91c29ae2fd7dc505f52965819e4a0c178bead7
+    jkube.eclipse.org/git-url: git@gsosub.rhgls.com:jzuriaga/ex288-apps-catalog-backend.git
+    app.openshift.io/vcs-ref: main
+    app.openshift.io/vcs-uri: git@gsosub.rhgls.com:jzuriaga/ex288-apps-catalog-backend.git
+    jkube.eclipse.org/git-branch: main
+  labels:
+    app: catalog-backend
+    provider: jkube
+    version: 1.0.0-SNAPSHOT
+    group: com.example.repartman
+  name: catalog-backend
+spec:
+  port:
+    targetPort: 8080
+  to:
+    kind: Service
+    name: catalog-backend

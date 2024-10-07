@@ -1,0 +1,116 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  annotations:
+    banzaicloud.com/last-applied: UEsDBBQACAAIAAAAAAAAAAAAAAAAAAAAAAAIAAAAb3JpZ2luYWzMVd9vGzcM/l/40g24848sTp17a+OuGDbHhp21D0UQ0BJtC9VJqkTdagT3vw88x6mdNVhfAvTJFkWK5Mfv490DBvOBYjLeQQUYQuo3Qyjgs3EaKlgyMq2zXRJDATUxamSE6h7QOc/Ixrskx9q7jderng+JI5HFVeoZeZJjJiggRF8TbymnnvH94CNDBZdnw4v/3CUVMdAhsi3A4opslwRDgOqQqlTIaP2mTIxOo/VO8jxc3iXiLM4nl9FbOrW1BTis6f9eFZ8UUIljII7eQgH+H0dxQWuK5BQlqD49QfMUi34zRBu2KOgq7+QRSxEqafMR76lUMXkLz5UFBWQjjuvfRqNzNVYlDQbj8lyTLvH87HWpxmN18Xo9Xl1enkF72xaQAikBL1KwRmGCalhAIkuKfexGh6y2f70kyFIFxcYouv4BsJnqYJGpq+2IcS/KgyOgZDhoHMX9SMk13e/DQKaz6/ezu8VsdnM3f7NcfpwtJlBAgzbT79HX8kAiFYn/pN2C1nL+TLtD4OTtcdQzM27btvhevr+X7xbXb6bvDvmggseQpwHT2eTY77jV2wJMjRsxf8m4E809MLXfVVI1o96gJ8Ls3ObZ2rm3RkkTf6yvPc8jJXKyEKxpyFFK8+hX3bzo6wHDukZh9Kd9d1BAWVKDohu96qGujbva+/zyKhi3efUrCFnXaGyOdLONlLbeaqhGBRhn2KCdkMXdkpR3Wkg8KiBQNF6fmNjU5DM/2kZPFC7TJ9Tm5686UvI5dovlvi2g8TbXNPXZ8Z6XtfydI2+hgr5opK9Xz3KqPCGAUCCRytHw7so7pq8s7a/T++hFLcPBYCgkhBw0Mi05ItNmd1zIlUVT3zwo9Tu77/gjMhdrYnL84Vvsk8/JD5T9TaGoFKU09brLDAtC/TEapplTBLen0EGkL5kSd/8T+7hn/tnoYmo6pYk2OHco7/fl4Xi0MQdt+28AAAD//1BLBwgl137D2AIAACoHAABQSwECFAAUAAgACAAAAAAAJdd+w9gCAAAqBwAACAAAAAAAAAAAAAAAAAAAAAAAb3JpZ2luYWxQSwUGAAAAAAEAAQA2AAAADgMAAAAA
+    mongodb.opstreelabs.in: "true"
+    prometheus.io/port: "9216"
+    prometheus.io/scrape: "true"
+  creationTimestamp: "2023-06-19T09:34:35Z"
+  generation: 1
+  labels:
+    app: mongodb-catalog-standalone
+    mongodb_setup: standalone
+    role: standalone
+  name: mongodb-catalog-standalone
+  namespace: petrol
+  ownerReferences:
+  - apiVersion: opstreelabs.in/v1alpha1
+    controller: true
+    kind: MongoDB
+    name: mongodb-catalog
+    uid: f3554c8c-e008-4ded-a427-c88c67f8b992
+  resourceVersion: "1996310"
+  uid: 2fb40a54-94a3-4846-b367-48b2bca96720
+spec:
+  podManagementPolicy: OrderedReady
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: mongodb-catalog-standalone
+      mongodb_setup: standalone
+      role: standalone
+  serviceName: mongodb-catalog-standalone
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: mongodb-catalog-standalone
+        mongodb_setup: standalone
+        role: standalone
+    spec:
+      containers:
+      - env:
+        - name: MONGO_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: MONGODB_PASSWORD
+              name: mongodb-catalog
+        - name: MONGO_ROOT_USERNAME
+          value: catalog
+        - name: MONGO_MODE
+          value: standalone
+        image: quay.io/opstree/mongo:v5.0.6
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          exec:
+            command:
+            - mongo
+            - --eval
+            - db.adminCommand('ping')
+          failureThreshold: 5
+          initialDelaySeconds: 15
+          periodSeconds: 15
+          successThreshold: 1
+          timeoutSeconds: 5
+        name: mongo
+        readinessProbe:
+          exec:
+            command:
+            - mongo
+            - --eval
+            - db.adminCommand('ping')
+          failureThreshold: 5
+          initialDelaySeconds: 15
+          periodSeconds: 15
+          successThreshold: 1
+          timeoutSeconds: 5
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /data/db
+          name: mongodb-catalog-standalone
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext:
+        fsGroup: 1001
+      terminationGracePeriodSeconds: 30
+  updateStrategy:
+    rollingUpdate:
+      partition: 0
+    type: RollingUpdate
+  volumeClaimTemplates:
+  - apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      creationTimestamp: null
+      name: mongodb-catalog-standalone
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 256Mi
+      volumeMode: Filesystem
+    status:
+      phase: Pending
+status:
+  availableReplicas: 0
+  collisionCount: 0
+  currentRevision: mongodb-catalog-standalone-dd69767dd
+  observedGeneration: 1
+  replicas: 0
+  updateRevision: mongodb-catalog-standalone-dd69767dd

@@ -1,0 +1,10 @@
+apiVersion: triggers.tekton.dev/v1beta1
+kind: Trigger
+metadata:
+  name: EP288_TASK88_APPLICATION
+spec:
+  serviceAccountName: EP288_TASK88_SERVICEACCOUNT
+  bindings:
+    - ref: EP288_TASK88_APPLICATION
+  template:
+    ref: EP288_TASK88_APPLICATION

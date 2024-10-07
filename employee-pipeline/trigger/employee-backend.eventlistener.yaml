@@ -1,0 +1,8 @@
+apiVersion: triggers.tekton.dev/v1beta1
+kind: EventListener
+metadata:
+  name: EP288_TASK88_APPLICATION
+spec:
+  serviceAccountName: EP288_TASK88_SERVICEACCOUNT
+  triggers:
+    - triggerRef: EP288_TASK88_APPLICATION

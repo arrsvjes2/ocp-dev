@@ -1,0 +1,21 @@
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  {{- with .Values.route.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  labels:
+    {{- include "customer.labels" . | nindent 4 }}
+  name: {{ include "customer.fullname" . }}
+spec:
+  {{ if eq .Values.secureRoute "true" }}
+  tls:
+    termination: edge
+  {{ end }}
+  port:
+    targetPort: {{ .Values.service.port }}
+  to:
+    kind: Service
+    name: {{ include "customer.fullname" . }}

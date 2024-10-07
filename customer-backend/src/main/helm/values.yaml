@@ -1,0 +1,87 @@
+---
+
+replicaCount: 1
+revisionHistoryLimit: 2
+
+image:
+  repository: customer
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: latest
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+provider: jkube
+group: com.example.repartman
+
+podStrategy:
+  rollingParams:
+    timeoutSeconds: 3600
+  type: Rolling
+
+podAnnotations: {}
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext:
+  privileged: false
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+service:
+  port: 8080
+
+route:
+  annotations: {}
+
+liveness:
+  failureThreshold: 3
+  httpGet:
+    path: /q/health/live
+    port: http
+    scheme: HTTP
+  initialDelaySeconds: 10
+  successThreshold: 1
+
+readiness:
+  failureThreshold: 3
+  httpGet:
+    path: /q/health/ready
+    port: http
+    scheme: HTTP
+  initialDelaySeconds: 5
+  successThreshold: 1
+
+startup:
+  failureThreshold: 30
+  httpGet:
+    path: /q/health/started
+    port: http
+    scheme: HTTP
+  initialDelaySeconds: 5
+  successThreshold: 1
+  periodSeconds: 10
+
+resources: {}
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}

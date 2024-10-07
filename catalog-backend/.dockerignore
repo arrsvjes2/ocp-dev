@@ -1,0 +1,13 @@
+# *
+# !target/*-runner
+# !target/*-runner.jar
+# !target/lib/*
+# !target/quarkus-app/*
+target
+src/main/docker
+openshift
+mvnw*
+.vscode
+.mvn
+README.md
+settings

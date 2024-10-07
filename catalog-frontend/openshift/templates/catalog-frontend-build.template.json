@@ -1,0 +1,161 @@
+{
+  "kind": "Template",
+  "apiVersion": "template.openshift.io/v1",
+  "metadata": {
+    "name": "catalog-frontend-build",
+    "annotations": {
+      "openshift.io/display-name": "Catalog Frontend Node.js",
+      "description": "An Node.js frontend application for visualizing the Catalog of Products. For more information about using this template, including OpenShift considerations, see https://github.com/sclorg/nodejs-ex/blob/master/README.md.",
+      "tags": "catalog,React,javascript,nodejs",
+      "iconClass": "icon-nodejs",
+      "openshift.io/long-description": "This template defines resources needed to develop the React with NodeJS application, including a build configuration and application deployment configuration.",
+      "openshift.io/provider-display-name": "Red Hat, Inc.",
+      "openshift.io/documentation-url": "https://github.com/sclorg/nodejs-ex",
+      "template.openshift.io/bindable": "false"
+    }
+  },
+  "message": "The following service(s) have been created in your project: ${NAME}.\n\nFor more information about using this template, including OpenShift considerations, see https://github.com/sclorg/nodejs-ex/blob/master/README.md.",
+  "labels": {
+      "template": "nodejs-catalog-frontend",
+      "app": "catalog-frontend"
+  },
+  "objects": [
+    {
+      "kind": "ImageStream",
+      "apiVersion": "image.openshift.io/v1",
+      "metadata": {
+        "name": "${NAME}",
+        "annotations": {
+          "description": "Keeps track of changes in the application image"
+        }
+      }
+    },
+    {
+      "kind": "Secret",
+      "apiVersion" : "v1",
+      "metadata" : {
+        "name": "${NAME}-git-creds",
+        "annotations": {
+          "description" : "Credentials for accessing git repository"
+        }
+      },
+      "stringData" : {
+        "username" : "${SOURCE_USERNAME}",
+        "password" : "${SOURCE_PASSWORD}"
+      },
+      "type": "kubernetes.io/basic-auth"
+    },
+    {
+      "kind": "BuildConfig",
+      "apiVersion": "build.openshift.io/v1",
+      "metadata": {
+        "name": "${NAME}",
+        "annotations": {
+          "description": "Defines how to build the application",
+          "template.alpha.openshift.io/wait-for-ready": "true"
+        }
+      },
+      "spec": {
+        "successfulBuildsHistoryLimit": 2,
+        "failedBuildsHistoryLimit": 2,
+        "source": {
+          "type": "Git",
+          "git": {
+            "uri": "${SOURCE_REPOSITORY_URL}",
+            "ref": "${SOURCE_REPOSITORY_REF}"
+          },
+          "sourceSecret" : {
+            "name": "${NAME}-git-creds"
+          },
+          "contextDir": "${CONTEXT_DIR}"
+        },
+        "strategy": {
+          "type": "Source",
+          "dockerStrategy": {
+            "dockerfilePath": "Containerfile",
+            "buildArgs": [
+              {
+                "name": "CATALOG_API_URL",
+                "value": "${APPLICATION_SERVICE}"
+              },
+              {
+                  "name": "NPM_MIRROR",
+                  "value": "${NPM_MIRROR}"
+              }
+            ]
+          }
+        },
+        "output": {
+          "to": {
+            "kind": "ImageStreamTag",
+            "name": "${NAME}:latest"
+          }
+        },
+        "triggers": [
+          {
+            "type": "ImageChange"
+          },
+          {
+            "type": "ConfigChange"
+          }
+        ]
+      }
+    }
+  ],
+  "parameters": [
+    {
+      "name": "NAME",
+      "displayName": "Name",
+      "description": "The name assigned to all of the frontend objects defined in this template.",
+      "required": true,
+      "value": "nodejs-example"
+    },
+    {
+      "name": "SOURCE_REPOSITORY_URL",
+      "displayName": "Git Repository URL",
+      "description": "The URL of the repository with your application source code.",
+      "required": true,
+      "value": "https://github.com/sclorg/nodejs-ex.git"
+    },
+    {
+      "name": "SOURCE_REPOSITORY_REF",
+      "displayName": "Git Reference",
+      "description": "Set this to a branch name, tag or other ref of your repository if you are not using the default branch.",
+      "required": true,
+      "value": "main"
+    },
+    {
+      "name": "SOURCE_USERNAME",
+      "displayName": "Git username",
+      "description": "Username that will be used for accessing the git repository.",
+      "generate": "expression",
+      "from": "user[A-Z0-9]{3}",
+      "required": true
+    },
+    {
+      "name": "SOURCE_PASSWORD",
+      "displayName": "git repository user password",
+      "description": "Password for the git user.",
+      "generate": "expression",
+      "from": "[a-zA-Z0-9]{16}",
+      "required": true
+    },
+    {
+      "name": "CONTEXT_DIR",
+      "displayName": "Context Directory",
+      "description": "Set this to the relative path to your project if it is not in the root of your repository."
+    },
+    {
+      "name": "APPLICATION_SERVICE",
+      "displayName": "Application Service URL",
+      "description": "The exposed service that will be contacted by the frontend application",
+      "value": "http://catalog-backend:8080/"
+    },
+    {
+      "name": "NPM_MIRROR",
+      "displayName": "Custom NPM Mirror URL",
+      "description": "The custom NPM mirror URL",
+      "value": ""
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: scc-anyuid
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: scc-anyuid
+subjects:
+- kind: ServiceAccount
+  name: mongodb-sa
+  namespace: petrol
